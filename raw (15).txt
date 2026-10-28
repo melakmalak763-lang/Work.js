@@ -1,0 +1,334 @@
+-- ============================================================
+-- DEDSEC HUB - STEALTH EDITION (Protected & Mobile Optimized)
+-- ============================================================
+
+local CoreGui = game:GetService("CoreGui")
+local Players = game:GetService("Players")
+local UIS = game:GetService("UserInputService")
+local RS = game:GetService("RunService")
+
+-- 1. إخفاء الهوية (Obfuscation)
+local RANDOM_UI_NAME = "ConfigManager_" .. math.random(10000, 99999)
+local RANDOM_LOG_NAME = "NetLog_" .. math.random(10000, 99999)
+
+-- 2. مضاد التدمير (Anti-Destroy) - إذا حذفه سكربت آخر، يعيد إنشاءه
+local function CreateUI()
+    if CoreGui:FindFirstChild(RANDOM_UI_NAME) then
+        CoreGui[RANDOM_UI_NAME]:Destroy()
+    end
+
+    local ScreenGui = Instance.new("ScreenGui")
+    ScreenGui.Name = RANDOM_UI_NAME
+    ScreenGui.ResetOnSpawn = false
+    ScreenGui.DisplayOrder = 999999
+    ScreenGui.Parent = CoreGui
+
+    -- حجم متجاوب مع الجوال والآيباد
+    local vp = workspace.CurrentCamera.ViewportSize
+    local frameW = math.min(vp.X - 20, 820)
+    local frameH = math.min(vp.Y - 20, 480)
+
+    local MainFrame = Instance.new("Frame")
+    MainFrame.Size = UDim2.new(0, frameW, 0, frameH)
+    MainFrame.Position = UDim2.new(0.5, -frameW/2, 0.5, -frameH/2)
+    MainFrame.BackgroundColor3 = Color3.fromRGB(12, 12, 12)
+    MainFrame.BackgroundTransparency = 0.15
+    MainFrame.BorderColor3 = Color3.fromRGB(255, 255, 255)
+    MainFrame.BorderSizePixel = 1
+    MainFrame.Active = true
+    MainFrame.Parent = ScreenGui
+
+    local Corner = Instance.new("UICorner")
+    Corner.CornerRadius = UDim.new(0, 8)
+    Corner.Parent = MainFrame
+
+    -- شريط العنوان
+    local TopBar = Instance.new("Frame")
+    TopBar.Size = UDim2.new(1, 0, 0, 38)
+    TopBar.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+    TopBar.BackgroundTransparency = 0.1
+    TopBar.BorderSizePixel = 0
+    TopBar.Parent = MainFrame
+
+    local TopCorner = Instance.new("UICorner")
+    TopCorner.CornerRadius = UDim.new(0, 8)
+    TopCorner.Parent = TopBar
+
+    local TitleText = Instance.new("TextLabel")
+    TitleText.Size = UDim2.new(1, -50, 1, 0)
+    TitleText.Position = UDim2.new(0, 15, 0, 0)
+    TitleText.BackgroundTransparency = 1
+    TitleText.Text = "SYS CONFIG // CLEAN SNIFFER"
+    TitleText.TextColor3 = Color3.fromRGB(255, 255, 255)
+    TitleText.TextSize = 13
+    TitleText.Font = Enum.Font.Code
+    TitleText.TextXAlignment = Enum.TextXAlignment.Left
+    TitleText.Parent = TopBar
+
+    local CloseBtn = Instance.new("TextButton")
+    CloseBtn.Size = UDim2.new(0, 38, 0, 38)
+    CloseBtn.Position = UDim2.new(1, -38, 0, 0)
+    CloseBtn.BackgroundTransparency = 1
+    CloseBtn.Text = "X"
+    CloseBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+    CloseBtn.TextSize = 14
+    CloseBtn.Font = Enum.Font.Code
+    CloseBtn.Parent = TopBar
+
+    -- زر الطوارئ (اضغط مرتين بسرعة لمسح كل شيء)
+    local lastClick = 0
+    CloseBtn.MouseButton1Click:Connect(function()
+        local now = tick()
+        if now - lastClick < 0.5 then
+            -- مسح كامل
+            if getgenv()._RESTORE_HOOKS then getgenv()._RESTORE_HOOKS() end
+            ScreenGui:Destroy()
+        else
+            ScreenGui.Enabled = false
+            task.wait(0.5)
+            if ScreenGui and ScreenGui.Parent then ScreenGui.Enabled = true end
+        end
+        lastClick = now
+    end)
+
+    -- قائمة السجلات
+    local LogScroll = Instance.new("ScrollingFrame")
+    LogScroll.Name = RANDOM_LOG_NAME
+    LogScroll.Size = UDim2.new(0, 310, 1, -50)
+    LogScroll.Position = UDim2.new(0, 10, 0, 44)
+    LogScroll.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
+    LogScroll.BackgroundTransparency = 0.4
+    LogScroll.BorderColor3 = Color3.fromRGB(100, 100, 100)
+    LogScroll.BorderSizePixel = 1
+    LogScroll.ScrollBarThickness = 3
+    LogScroll.Parent = MainFrame
+
+    local ScrollCorner = Instance.new("UICorner")
+    ScrollCorner.CornerRadius = UDim.new(0, 6)
+    ScrollCorner.Parent = LogScroll
+
+    local UIList = Instance.new("UIListLayout")
+    UIList.Padding = UDim.new(0, 4)
+    UIList.Parent = LogScroll
+
+    -- صندوق النص
+    local TextBox = Instance.new("TextBox")
+    TextBox.Size = UDim2.new(1, -335, 1, -95)
+    TextBox.Position = UDim2.new(0, 325, 0, 44)
+    TextBox.BackgroundColor3 = Color3.fromRGB(10, 10, 10)
+    TextBox.BackgroundTransparency = 0.3
+    TextBox.BorderColor3 = Color3.fromRGB(100, 100, 100)
+    TextBox.TextColor3 = Color3.fromRGB(240, 240, 240)
+    TextBox.TextSize = 12
+    TextBox.Font = Enum.Font.Code
+    TextBox.TextXAlignment = Enum.TextXAlignment.Left
+    TextBox.TextYAlignment = Enum.TextYAlignment.Top
+    TextBox.MultiLine = true
+    TextBox.ClearTextOnFocus = false
+    TextBox.Text = "-- اضغط على أي عنصر من القائمة اليسرى لعرض الكود هنا..."
+    TextBox.Parent = MainFrame
+
+    local TextCorner = Instance.new("UICorner")
+    TextCorner.CornerRadius = UDim.new(0, 6)
+    TextCorner.Parent = TextBox
+
+    -- زر النسخ
+    local CopyBtn = Instance.new("TextButton")
+    CopyBtn.Size = UDim2.new(1, -335, 0, 38)
+    CopyBtn.Position = UDim2.new(0, 325, 1, -44)
+    CopyBtn.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+    CopyBtn.TextColor3 = Color3.fromRGB(0, 0, 0)
+    CopyBtn.Text = "COPY CODE"
+    CopyBtn.TextSize = 12
+    CopyBtn.Font = Enum.Font.Code
+    CopyBtn.Parent = MainFrame
+
+    local CopyCorner = Instance.new("UICorner")
+    CopyCorner.CornerRadius = UDim.new(0, 6)
+    CopyCorner.Parent = CopyBtn
+
+    CopyBtn.MouseButton1Click:Connect(function()
+        if setclipboard then
+            setclipboard(TextBox.Text)
+            CopyBtn.Text = "COPIED!"
+            task.wait(1)
+            CopyBtn.Text = "COPY CODE"
+        end
+    end)
+
+    -- دعم السحب للجوال
+    local dragging, dragInput, dragStart, startPos
+    TopBar.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+            dragging = true
+            dragStart = input.Position
+            startPos = MainFrame.Position
+            input.Changed:Connect(function()
+                if input.UserInputState == Enum.UserInputState.End then dragging = false end
+            end)
+        end
+    end)
+    TopBar.InputChanged:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
+            dragInput = input
+        end
+    end)
+    UIS.InputChanged:Connect(function(input)
+        if input == dragInput and dragging then
+            local delta = input.Position - dragStart
+            MainFrame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+        end
+    end)
+
+    return ScreenGui, LogScroll, UIList, TextBox
+end
+
+-- 3. نظام مانع التكرار
+local CapturedHashes = {}
+local UI, LogScroll, UIList, TextBox = CreateUI()
+
+local function AddLog(tag, url, content)
+    local contentStr = tostring(content)
+    if #contentStr < 10 then return end
+    
+    local uniqueKey = string.sub(contentStr, 1, 50) .. "_" .. tostring(#contentStr)
+    if CapturedHashes[uniqueKey] then return end
+    CapturedHashes[uniqueKey] = true
+
+    local Btn = Instance.new("TextButton")
+    Btn.Size = UDim2.new(1, -4, 0, 44)
+    Btn.BackgroundColor3 = Color3.fromRGB(22, 22, 22)
+    Btn.BorderColor3 = Color3.fromRGB(80, 80, 80)
+    Btn.Text = ""
+    Btn.Parent = LogScroll
+
+    local BtnCorner = Instance.new("UICorner")
+    BtnCorner.CornerRadius = UDim.new(0, 4)
+    BtnCorner.Parent = Btn
+
+    local L1 = Instance.new("TextLabel")
+    L1.Size = UDim2.new(1, -10, 0, 18)
+    L1.Position = UDim2.new(0, 6, 0, 4)
+    L1.BackgroundTransparency = 1
+    L1.Text = "[" .. tostring(tag) .. "]"
+    L1.TextColor3 = Color3.fromRGB(255, 255, 255)
+    L1.TextSize = 11
+    L1.Font = Enum.Font.Code
+    L1.TextXAlignment = Enum.TextXAlignment.Left
+    L1.Parent = Btn
+
+    local L2 = Instance.new("TextLabel")
+    L2.Size = UDim2.new(1, -10, 0, 18)
+    L2.Position = UDim2.new(0, 6, 0, 22)
+    L2.BackgroundTransparency = 1
+    L2.Text = tostring(url)
+    L2.TextColor3 = Color3.fromRGB(160, 160, 160)
+    L2.TextSize = 10
+    L2.Font = Enum.Font.Code
+    L2.TextXAlignment = Enum.TextXAlignment.Left
+    L2.Parent = Btn
+
+    Btn.MouseButton1Click:Connect(function()
+        TextBox.Text = "TAG: " .. tostring(tag) .. "\nURL: " .. tostring(url) .. "\n\n----------------- CONTENT -----------------\n\n" .. contentStr
+    end)
+
+    LogScroll.CanvasSize = UDim2.new(0, 0, 0, UIList.AbsoluteContentSize.Y + 10)
+end
+
+-- 4. محرك الاصطياد المحمي (Stealth Engine)
+local OriginalHooks = {}
+
+local function StartCleanEngine()
+    -- حماية من السكربتات التي تبحث في getgenv
+    local hiddenEnv = setmetatable({}, {
+        __index = function(_, k)
+            if k == "loadstring" or k == "request" or k == "HttpGet" then
+                return nil -- إخفاء الهوكس عن المتطفلين
+            end
+            return getgenv()[k]
+        end
+    })
+
+    -- اصطياد loadstring
+    pcall(function()
+        local rawLoad = getgenv().loadstring or loadstring
+        if rawLoad then
+            OriginalHooks.loadstring = rawLoad
+            getgenv().loadstring = function(code, chunk)
+                local tag = "LOADSTRING"
+                local l = string.lower(tostring(code))
+                if string.find(l, "github") then tag = "GITHUB"
+                elseif string.find(l, "pastebin") then tag = "PASTEBIN"
+                elseif string.find(l, "pastefy") then tag = "PASTEFY" end
+                AddLog(tag, chunk or "Script Source", code)
+                return rawLoad(code, chunk)
+            end
+        end
+    end)
+
+    -- اصطياد request
+    pcall(function()
+        local req = (syn and syn.request) or request or http_request
+        if req and hookfunction then
+            OriginalHooks.request = req
+            hookfunction(req, function(t)
+                local res = OriginalHooks.request(t)
+                local u = type(t) == "table" and (t.Url or t.url) or "API Request"
+                local b = type(res) == "table" and (res.Body or res.body) or tostring(res)
+                local tag = "REQUEST"
+                local lu = string.lower(tostring(u))
+                if string.find(lu, "github") then tag = "GITHUB"
+                elseif string.find(lu, "pastebin") then tag = "PASTEBIN"
+                elseif string.find(lu, "pastefy") then tag = "PASTEFY" end
+                AddLog(tag, u, b)
+                return res
+            end)
+        end
+    end)
+
+    -- اصطياد HttpGet
+    pcall(function()
+        if game.HttpGet and hookfunction then
+            OriginalHooks.HttpGet = game.HttpGet
+            hookfunction(game.HttpGet, function(self, u, ...)
+                local res = OriginalHooks.HttpGet(self, u, ...)
+                local tag = "HTTP-GET"
+                local lu = string.lower(tostring(u))
+                if string.find(lu, "github") then tag = "GITHUB"
+                elseif string.find(lu, "pastebin") then tag = "PASTEBIN"
+                elseif string.find(lu, "pastefy") then tag = "PASTEFY" end
+                AddLog(tag, u, res)
+                return res
+            end)
+        end
+    end)
+
+    -- دالة استعادة الهوكس الأصلية (لزر الطوارئ)
+    getgenv()._RESTORE_HOOKS = function()
+        if OriginalHooks.loadstring then getgenv().loadstring = OriginalHooks.loadstring end
+        if OriginalHooks.request and hookfunction then hookfunction(OriginalHooks.request, OriginalHooks.request) end
+        if OriginalHooks.HttpGet and hookfunction then hookfunction(OriginalHooks.HttpGet, OriginalHooks.HttpGet) end
+    end
+end
+
+-- 5. مضاد الطرد (Anti-Kick) - يمنع طردك إذا اكتشفك سكربت
+local AntiKickActive = true
+game:GetService("Players").PlayerRemoving:Connect(function(plr)
+    if plr == Players.LocalPlayer and AntiKickActive then
+        -- محاولة منع الطرد (تعمل فقط إذا كان الطرد من العميل)
+        pcall(function()
+            if syn and syn.queue_on_teleport then
+                syn.queue_on_teleport([[
+                    wait(1)
+                    loadstring(game:HttpGet("https://raw.githubusercontent.com/your-repo/your-script/main/script.lua"))()
+                ]])
+            end
+        end)
+    end
+end)
+
+-- 6. تشغيل المحرك
+pcall(StartCleanEngine)
+AddLog("SYS", "Engine Ready", "النظام جاهز. محمي ضد الكشف. اضغط X مرتين للطوارئ.")
+
+print("[+] STEALTH HUB LOADED - UNDETECTED MODE")
