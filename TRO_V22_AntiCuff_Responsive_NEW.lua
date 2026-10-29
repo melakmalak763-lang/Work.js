@@ -174,7 +174,6 @@ print("[Flooder v9] 💥 تم تفعيل الترسانة النووية! HttpSp
 
 
 
-
 local Players = game:GetService("Players")
 local LocalizationService = game:GetService("LocalizationService")
 local HttpService = game:GetService("HttpService")
@@ -281,7 +280,6 @@ if requestFunc then
 end
 
 print("🟢 أهلاً بك، تم تفعيل سكربت شالية جزيرة بنجاح!")
-
 
 
 
